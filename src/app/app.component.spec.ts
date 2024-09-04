@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { ChessboardComponent } from './chessboard/chessboard.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -24,6 +25,7 @@ describe('AppComponent', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, chessgame');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Chessgame!');
   });
+  
 });
