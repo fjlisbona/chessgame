@@ -1,17 +1,21 @@
 .board-square{
     width: 12.5%;
-    height: 12.5%;
     display: inline-block;
     text-align: center;
     vertical-align: middle;
     line-height: 100px;
     font-size: 50px;
-    background-color: #f0d9b5;
     border: 1px solid #000;
     color: #000;
     cursor: pointer;
-
+    background-color: #ffce9e; /* Beige */
 }
+
+/* Para alternar colores por filas */
+.black {
+    background-color: #d18b47; /* Marrón */
+}
+
 .board{
     width: 800px;
     height: 800px;
