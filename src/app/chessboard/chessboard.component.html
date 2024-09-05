@@ -1,1 +1,11 @@
-<p>chessboard works!</p>
+<div class="board">
+    <div class="board-row" *ngFor="let row of rows; let i = index">
+        <div class="board-square" *ngFor="let square of row; let j = index" [ngClass]="{'black': (i+j) % 2 == 1}">
+            <div class="board-piece" *ngIf="square.piece" [ngClass]="square.piece.color">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
+                    <path [attr.d]="square.piece.icon"></path>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
