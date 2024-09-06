@@ -1,11 +1,12 @@
 <div class="board">
     <div class="board-row" *ngFor="let row of rows; let i = index">
-        <div class="board-square" *ngFor="let square of columns; let j = index" [ngClass]="{'black': (i+j) % 2 == 1}">
-            <div class="board-piece" *ngIf="square.piece" [ngClass]="square.piece.color">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45">
-                    <path [attr.d]="square.piece.icon"></path>
-                </svg>
-            </div>
+        <div class="board-square" *ngFor="let piece of pieces;let j=index" [ngClass]="{'black': (i+j) % 2 == 1}">
+
+            <span *ngIf="i==0" [innerHTML]="piece.black"></span> 
+            <span *ngIf="i==1" [innerHTML]="pawn.black"></span>
+
+            <span *ngIf="i==6" [innerHTML]="pawn.white"></span>
+            <span *ngIf="i==7" [innerHTML]="piece.white"></span>
         </div>
     </div>
 </div>
