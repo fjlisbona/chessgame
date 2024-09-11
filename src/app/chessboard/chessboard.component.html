@@ -2,11 +2,7 @@
     <div class="board-row" *ngFor="let row of rows; let i = index">
         <div class="board-square" *ngFor="let piece of pieces;let j=index" [ngClass]="{'black': (i+j) % 2 == 1}">
 
-            <span *ngIf="i==0" [innerHTML]="piece.black"></span> 
-            <span *ngIf="i==1" [innerHTML]="pawn.black"></span>
-
-            <span *ngIf="i==6" [innerHTML]="pawn.white"></span>
-            <span *ngIf="i==7" [innerHTML]="piece.white"></span>
+            <span [innerHTML]="getPiece(i, j)"></span>
         </div>
     </div>
 </div>
