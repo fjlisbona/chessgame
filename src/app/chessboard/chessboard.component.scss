@@ -10,11 +10,14 @@
     cursor: pointer;
     background-color: #ffce9e; /* Beige */
 }
-
 /* Para alternar colores por filas */
 .black {
     background-color: #d18b47; /* Marrón */
 }
+.selected {
+    background-color: #4a90e2; /* Azul */
+}
+
 
 .board{
     width: 800px;
