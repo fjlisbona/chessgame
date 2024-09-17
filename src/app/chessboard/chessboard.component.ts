@@ -11,17 +11,8 @@ import { CommonModule } from '@angular/common';
 export class ChessboardComponent {
   cols: any=[`1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`];
   rows = [`a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`];
-  getPiece(i: number, j: number) {
-    if (i === 0) {
-      return this.pieces[j].black;
-    } else if (i === 1) {
-      return this.pawn.black;
-    } else if (i === 6) {
-      return this.pawn.white;
-    } else if (i === 7) {
-      return this.pieces[j].white;
-    }
-    return null; // Devuelve null para cualquier otro caso
+  getPiece(row: number, col: number): string | null {
+    return this.board[row][col] || null;
   }
   
   selectedSquare: { row: number, col: number } | null = null;
@@ -29,13 +20,32 @@ export class ChessboardComponent {
 
   onSquareClick(row: number, col: number): void {
     const piece = this.getPiece(row, col);
-    if (piece && this.isWhitePiece(piece)) {
+    console.log(`Clic en: fila ${row}, columna ${col}, pieza: ${piece}`);
+
+    if (this.selectedSquare) {
+      // Ya hay una pieza seleccionada
+      if (this.isPossibleMove(row, col)) {
+        // El clic es en un movimiento posible, mover la pieza
+        this.movePiece(this.selectedSquare.row, this.selectedSquare.col, row, col);
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+        // Aquí podrías cambiar el turno si lo estás manejando
+      } else if (piece && this.isWhitePiece(piece)) {
+        // Seleccionar una nueva pieza blanca
+        this.selectedSquare = { row, col };
+        this.possibleMoves = this.getPossibleMoves(row, col, piece);
+      } else {
+        // Deseleccionar si se hace clic en una casilla inválida
+        this.selectedSquare = null;
+        this.possibleMoves = [];
+      }
+    } else if (piece && this.isWhitePiece(piece)) {
+      // Seleccionar una pieza blanca
       this.selectedSquare = { row, col };
       this.possibleMoves = this.getPossibleMoves(row, col, piece);
-    } else {
-      this.selectedSquare = null;
-      this.possibleMoves = [];
     }
+
+    console.log('Estado actual:', { selectedSquare: this.selectedSquare, possibleMoves: this.possibleMoves });
   }
 
   isSelected(row: number, col: number): boolean {
@@ -157,8 +167,21 @@ export class ChessboardComponent {
     return piece !== null && this.isWhitePiece(piece) === isWhite;
   }
 
-  // ... resto del código existente ...
-  
+  movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
+    const piece = this.getPiece(fromRow, fromCol);
+    if (piece) {
+      // Eliminar la pieza de la posición original
+      this.setPiece(fromRow, fromCol, null);
+      // Colocar la pieza en la nueva posición
+      this.setPiece(toRow, toCol, piece);
+      console.log(`Pieza movida de (${fromRow},${fromCol}) a (${toRow},${toCol})`);
+    }
+  }
+
+  setPiece(row: number, col: number, piece: string | null): void {
+    this.board[row][col] = piece || '';
+  }
+
   pieces = [
     { white: '♖', black: '♜' },
     { white: '♘', black: '♞' },
@@ -170,16 +193,14 @@ export class ChessboardComponent {
     { white: '♖', black: '♜' }
   ];
   pawn = { white: '♙', black: '♟' };
-  board: any =
-    [
-      { piece: this.pieces[0], color: 'black' },
-      { piece: this.pieces[1], color: 'black' },
-      { piece: this.pieces[2], color: 'black' },
-      { piece: this.pieces[3], color: 'black' },
-      { piece: this.pieces[4], color: 'black' },
-      { piece: this.pieces[2], color: 'black' },
-      { piece: this.pieces[1], color: 'black' },
-      { piece: this.pieces[0], color: 'black' }
-    ]
-
+  board: string[][] = [
+    ['♜', '♞', '♝', '♛', '♚', '♝', '♞', '♜'],
+    ['♟', '♟', '♟', '♟', '♟', '♟', '♟', '♟'],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['', '', '', '', '', '', '', ''],
+    ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
+    ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
+  ];
 };
