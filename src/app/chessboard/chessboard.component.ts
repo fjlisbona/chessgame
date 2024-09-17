@@ -25,37 +25,106 @@ export class ChessboardComponent {
   }
   
   selectedSquare: { row: number, col: number } | null = null;
+  possibleMoves: { row: number, col: number }[] = [];
 
   onSquareClick(row: number, col: number): void {
-    if (this.isWhitePiece(row, col)) {
+    const piece = this.getPiece(row, col);
+    if (piece && this.isWhitePiece(piece)) {
       this.selectedSquare = { row, col };
+      this.possibleMoves = this.getPossibleMoves(row, col, piece);
     } else {
       this.selectedSquare = null;
+      this.possibleMoves = [];
     }
   }
 
   isSelected(row: number, col: number): boolean {
     return this.selectedSquare?.row === row && this.selectedSquare?.col === col;
   }
-  
-  isWhitePiece(row: number, col: number): boolean {
-    return row === 6 || row === 7; // Las piezas blancas están en las filas 6 y 7
+
+  isPossibleMove(row: number, col: number): boolean {
+    return this.possibleMoves.some(move => move.row === row && move.col === col);
+  }
+
+  isWhitePiece(piece: string): boolean {
+    return ['♙', '♖', '♘', '♗', '♕', '♔'].includes(piece);
+  }
+
+  getPossibleMoves(row: number, col: number, piece: string): { row: number, col: number }[] {
+    switch (piece) {
+      case '♙': return this.getPawnMoves(row, col);
+      case '♖': return this.getRookMoves(row, col);
+      case '♘': return this.getKnightMoves(row, col);
+      case '♗': return this.getBishopMoves(row, col);
+      case '♕': return this.getQueenMoves(row, col);
+      case '♔': return this.getKingMoves(row, col);
+      default: return [];
+    }
+  }
+
+  getPawnMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [];
+    if (row > 0) {
+      moves.push({ row: row - 1, col });
+      if (row === 6) moves.push({ row: row - 2, col });
+    }
+    return moves;
+  }
+
+  getRookMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [];
+    for (let i = 0; i < 8; i++) {
+      if (i !== row) moves.push({ row: i, col });
+      if (i !== col) moves.push({ row, col: i });
+    }
+    return moves;
   }
   
+  getBishopMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [];
+    for (let i = 1; i < 8; i++) {
+      moves.push({ row: row + i, col: col + i }, { row: row + i, col: col - i },
+                  { row: row - i, col: col + i }, { row: row - i, col: col - i });
+    }
+    return moves.filter(move => move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8);
+  }
+
+  getKnightMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [
+      { row: row - 2, col: col - 1 }, { row: row - 2, col: col + 1 },
+      { row: row - 1, col: col - 2 }, { row: row - 1, col: col + 2 },
+      { row: row + 1, col: col - 2 }, { row: row + 1, col: col + 2 },
+      { row: row + 2, col: col - 1 }, { row: row + 2, col: col + 1 }
+    ];
+    return moves.filter(move => move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8);
+  }
+
+  getQueenMoves(row: number, col: number): { row: number, col: number }[] {
+    return [...this.getRookMoves(row, col), ...this.getBishopMoves(row, col)];
+  }
+
+  getKingMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [
+      { row: row - 1, col: col - 1 }, { row: row - 1, col }, { row: row - 1, col: col + 1 },
+      { row, col: col - 1 }, { row, col: col + 1 },
+      { row: row + 1, col: col - 1 }, { row: row + 1, col }, { row: row + 1, col: col + 1 }
+    ];
+    return moves.filter(move => move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8);
+  }
+
   // ... resto del código existente ...
   
   pieces = [
-    { white: '&#9814;', black: '&#9820;', name: 'Torre' },
-    { white: '&#9816;', black: '&#9822;', name: 'Caballo' },    
-    { white: '&#9815;', black: '&#9821;', name: 'Alfil' },
-    { white: '&#9813;', black: '&#9819;', name: 'Reina' },
-    { white: '&#9812;', black: '&#9818;', name: 'Rey' },
-    { white: '&#9815;', black: '&#9821;', name: 'Alfil' },
-    { white: '&#9816;', black: '&#9822;', name: 'Caballo' },
-    { white: '&#9814;', black: '&#9820;', name: 'Torre' },
-
+    { white: '♖', black: '♜' },
+    { white: '♘', black: '♞' },
+    { white: '♗', black: '♝' },
+    { white: '♕', black: '♛' },
+    { white: '♔', black: '♚' },
+    { white: '♗', black: '♝' },
+    { white: '♘', black: '♞' },
+    { white: '♖', black: '♜' }
   ];
-  pawn = { white: '&#9817;', black: '&#9823;', name: 'Peon' };
+  pawn = { white: '♙', black: '♟' };
   board: any =
     [
       { piece: this.pieces[0], color: 'black' },

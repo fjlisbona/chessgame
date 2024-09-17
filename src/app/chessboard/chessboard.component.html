@@ -4,7 +4,8 @@
              *ngFor="let col of cols; let j = index" 
              [ngClass]="{
                  'black': (i+j) % 2 == 1,
-                 'selected': isSelected(i, j)
+                 'selected': isSelected(i, j),
+                 'possible-move': isPossibleMove(i, j)
              }"
              (click)="onSquareClick(i, j)">
             <span [innerHTML]="getPiece(i, j)"></span>
