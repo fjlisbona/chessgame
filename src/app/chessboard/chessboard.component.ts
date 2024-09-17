@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './chessboard.component.scss'
 })
 export class ChessboardComponent {
-  cols: any=[`1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`];
+  cols: any=[`1`, ` 2`, ` 3`, ` 4`, ` 5`, ` 6`, ` 7`, `8`];
   rows = [`a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`];
   getPiece(row: number, col: number): string | null {
     return this.board[row][col] || null;
@@ -19,28 +19,28 @@ export class ChessboardComponent {
   possibleMoves: { row: number, col: number }[] = [];
 
   onSquareClick(row: number, col: number): void {
+    if (this.gameOver || !this.isWhiteTurn) return;
+
     const piece = this.getPiece(row, col);
-    console.log(`Clic en: fila ${row}, columna ${col}, pieza: ${piece}`);
 
     if (this.selectedSquare) {
-      // Ya hay una pieza seleccionada
       if (this.isPossibleMove(row, col)) {
-        // El clic es en un movimiento posible, mover la pieza
         this.movePiece(this.selectedSquare.row, this.selectedSquare.col, row, col);
         this.selectedSquare = null;
         this.possibleMoves = [];
-        // Aquí podrías cambiar el turno si lo estás manejando
+        this.isWhiteTurn = false;
+        
+        if (!this.isGameOver()) {
+          setTimeout(() => this.makeAIMove(), 500);
+        }
       } else if (piece && this.isWhitePiece(piece)) {
-        // Seleccionar una nueva pieza blanca
         this.selectedSquare = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col, piece);
       } else {
-        // Deseleccionar si se hace clic en una casilla inválida
         this.selectedSquare = null;
         this.possibleMoves = [];
       }
     } else if (piece && this.isWhitePiece(piece)) {
-      // Seleccionar una pieza blanca
       this.selectedSquare = { row, col };
       this.possibleMoves = this.getPossibleMoves(row, col, piece);
     }
@@ -170,11 +170,14 @@ export class ChessboardComponent {
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
     const piece = this.getPiece(fromRow, fromCol);
     if (piece) {
-      // Eliminar la pieza de la posición original
       this.setPiece(fromRow, fromCol, null);
-      // Colocar la pieza en la nueva posición
       this.setPiece(toRow, toCol, piece);
       console.log(`Pieza movida de (${fromRow},${fromCol}) a (${toRow},${toCol})`);
+      
+      if (this.isGameOver()) {
+        this.gameOver = true;
+        console.log('¡Juego terminado!');
+      }
     }
   }
 
@@ -203,4 +206,57 @@ export class ChessboardComponent {
     ['♙', '♙', '♙', '♙', '♙', '♙', '♙', '♙'],
     ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
   ];
+
+  isWhiteTurn: boolean = true;
+  gameOver: boolean = false;
+
+  makeAIMove(): void {
+    const allPossibleMoves = this.getAllPossibleMoves(false);
+    if (allPossibleMoves.length > 0) {
+      const move = this.selectBestMove(allPossibleMoves);
+      this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+      this.isWhiteTurn = true;
+      
+      if (this.isGameOver()) {
+        this.gameOver = true;
+      }
+    }
+  }
+
+  getAllPossibleMoves(isWhite: boolean): any[] {
+    const moves: any[] = [];
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) === isWhite) {
+          const pieceMoves = this.getPossibleMoves(row, col, piece);
+          pieceMoves.forEach(move => {
+            moves.push({ from: { row, col }, to: move });
+          });
+        }
+      }
+    }
+    return moves;
+  }
+
+  selectBestMove(moves: any[]): any {
+    // Implementación básica: selecciona un movimiento aleatorio
+    // Puedes mejorar esto para hacer que la IA sea más inteligente
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
+
+  isGameOver(): boolean {
+    // Implementa la lógica para verificar si el juego ha terminado
+    // Por ejemplo, si un rey ha sido capturado
+    const whiteKing = this.board.findIndex(row => row.includes('♔'));
+    const blackKing = this.board.findIndex(row => row.includes('♚'));
+
+    console.log('whiteKing:', whiteKing, 'blackKing:', blackKing);
+
+    if (whiteKing === -1 || blackKing === -1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 };

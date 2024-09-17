@@ -1,14 +1,14 @@
 .board-square{
-    width: 12.5%;
-    display: inline-block;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 100px;
-    font-size: 50px;
-    border: 1px solid #000;
+    width: 100px; // Ancho fijo para las casillas
+    height: 100px; // Alto fijo para las casillas
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 60px;
     color: #000;
     cursor: pointer;
-    background-color: #ffce9e; /* Beige */
+    background-color: #f0d9b5; /* Color claro más suave */
+    transition: background-color 0.3s ease;
 }
 /* Para alternar colores por filas */
 .black {
@@ -26,10 +26,54 @@
     width: 800px;
     height: 800px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    border: 2px solid #333;
 }
 .board-row{
     width: 100%;
     height: 100px;
     display: flex;
+}
+
+.chessboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding-left: 30px; // Espacio para las etiquetas de fila
+    font-family: Arial, sans-serif;
+}
+
+.column-labels {
+    display: flex;
+    width: 800px; // Mismo ancho que el tablero
+    margin-left: 30px; // Alinear con el tablero
+    margin-bottom: 5px;
+}
+
+.board-with-row-labels {
+    display: flex;
+}
+
+.row-labels {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 800px; // Mismo alto que el tablero
+    margin-right: 5px;
+}
+
+.label {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: #555;
+}
+
+.column-labels .label {
+    width: 100px; // Mismo ancho que las casillas del tablero
+    justify-content: center; // Centrar el contenido horizontalmente
+    padding-left: 10px; // Ajusta este valor según sea necesario
 }

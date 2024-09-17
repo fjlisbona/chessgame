@@ -1,5 +1,14 @@
-<div class="board">
-    <div class="board-row" *ngFor="let row of rows; let i = index">
+<div class="chessboard-container">
+  <div class="column-labels">
+    <!-- Eliminamos la div vacía de aquí -->
+    <div class="label" *ngFor="let col of cols">{{col}}</div>
+  </div>
+  <div class="board-with-row-labels">
+    <div class="row-labels">
+      <div class="label" *ngFor="let row of rows">{{row}}</div>
+    </div>
+    <div class="board">
+      <div class="board-row" *ngFor="let row of rows; let i = index">
         <div class="board-square" 
              *ngFor="let col of cols; let j = index" 
              [ngClass]="{
@@ -10,5 +19,7 @@
              (click)="onSquareClick(i, j)">
             <span [innerHTML]="getPiece(i, j)"></span>
         </div>
+      </div>
     </div>
+  </div>
 </div>
