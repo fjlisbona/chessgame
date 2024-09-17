@@ -144,7 +144,12 @@ export class ChessboardComponent {
       { row, col: col - 1 }, { row, col: col + 1 },
       { row: row + 1, col: col - 1 }, { row: row + 1, col }, { row: row + 1, col: col + 1 }
     ];
-    return moves.filter(move => move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8);
+    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
+    
+    return moves.filter(move => 
+      move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8 &&
+      !this.isOccupiedBySameColor(move.row, move.col, isWhite)
+    );
   }
 
   isOccupiedBySameColor(row: number, col: number, isWhite: boolean): boolean {
