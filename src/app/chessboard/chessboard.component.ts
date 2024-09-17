@@ -18,8 +18,10 @@ export class ChessboardComponent {
   selectedSquare: { row: number, col: number } | null = null;
   possibleMoves: { row: number, col: number }[] = [];
 
+  isWhiteTurn: boolean = true;
+
   onSquareClick(row: number, col: number): void {
-    if (this.gameOver || !this.isWhiteTurn) return;
+    if (!this.isWhiteTurn) return; // No permitir clicks durante el turno de las negras
 
     const piece = this.getPiece(row, col);
 
@@ -30,9 +32,8 @@ export class ChessboardComponent {
         this.possibleMoves = [];
         this.isWhiteTurn = false;
         
-        if (!this.isGameOver()) {
-          setTimeout(() => this.makeAIMove(), 500);
-        }
+        // Activar el movimiento de la IA después de un breve retraso
+        setTimeout(() => this.makeAIMove(), 500);
       } else if (piece && this.isWhitePiece(piece)) {
         this.selectedSquare = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col, piece);
@@ -44,8 +45,6 @@ export class ChessboardComponent {
       this.selectedSquare = { row, col };
       this.possibleMoves = this.getPossibleMoves(row, col, piece);
     }
-
-    console.log('Estado actual:', { selectedSquare: this.selectedSquare, possibleMoves: this.possibleMoves });
   }
 
   isSelected(row: number, col: number): boolean {
@@ -207,19 +206,23 @@ export class ChessboardComponent {
     ['♖', '♘', '♗', '♕', '♔', '♗', '♘', '♖']
   ];
 
-  isWhiteTurn: boolean = true;
   gameOver: boolean = false;
 
   makeAIMove(): void {
+    console.log('IA está pensando...');
     const allPossibleMoves = this.getAllPossibleMoves(false);
+    console.log('Movimientos posibles:', allPossibleMoves);
     if (allPossibleMoves.length > 0) {
       const move = this.selectBestMove(allPossibleMoves);
+      console.log('Movimiento seleccionado:', move);
       this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
       this.isWhiteTurn = true;
       
       if (this.isGameOver()) {
         this.gameOver = true;
       }
+    } else {
+      console.log('No hay movimientos posibles para las piezas negras');
     }
   }
 
@@ -228,20 +231,24 @@ export class ChessboardComponent {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = this.getPiece(row, col);
-        if (piece && this.isWhitePiece(piece) === isWhite) {
-          const pieceMoves = this.getPossibleMoves(row, col, piece);
-          pieceMoves.forEach(move => {
-            moves.push({ from: { row, col }, to: move });
-          });
+        if (piece) {
+          console.log(`Pieza en (${row},${col}): ${piece}, isWhite: ${this.isWhitePiece(piece)}`);
+          if (this.isWhitePiece(piece) !== isWhite) {
+            const pieceMoves = this.getPossibleMoves(row, col, piece);
+            console.log(`Movimientos posibles para ${piece} en (${row},${col}):`, pieceMoves);
+            pieceMoves.forEach(move => {
+              moves.push({ from: { row, col }, to: move });
+            });
+          }
         }
       }
     }
+    console.log(`Total de movimientos encontrados: ${moves.length}`);
     return moves;
   }
 
   selectBestMove(moves: any[]): any {
-    // Implementación básica: selecciona un movimiento aleatorio
-    // Puedes mejorar esto para hacer que la IA sea más inteligente
+    // Por ahora, simplemente seleccionamos un movimiento aleatorio
     return moves[Math.floor(Math.random() * moves.length)];
   }
 
