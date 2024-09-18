@@ -14,7 +14,8 @@
              [ngClass]="{
                  'black': (i+j) % 2 == 1,
                  'selected': isSelected(i, j),
-                 'possible-move': isPossibleMove(i, j)
+                 'possible-move': isPossibleMove(i, j),
+                 'ai-move': isAIMove(i, j)
              }"
              (click)="onSquareClick(i, j)">
             <span [innerHTML]="getPiece(i, j)"></span>

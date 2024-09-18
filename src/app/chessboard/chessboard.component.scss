@@ -9,6 +9,22 @@
     cursor: pointer;
     background-color: #f0d9b5; /* Color claro más suave */
     transition: background-color 0.3s ease;
+    &.selected {
+        background-color: #3498db; /* Azul para la casilla seleccionada */
+    }
+    &.possible-move {
+        &::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+        }
+    }
 }
 /* Para alternar colores por filas */
 .black {

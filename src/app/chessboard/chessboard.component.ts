@@ -17,6 +17,7 @@ export class ChessboardComponent {
   
   selectedSquare: { row: number, col: number } | null = null;
   possibleMoves: { row: number, col: number }[] = [];
+  highlightedAIMove: { from: { row: number, col: number }, to: { row: number, col: number } } | null = null;
 
   isWhiteTurn: boolean = true;
 
@@ -32,8 +33,8 @@ export class ChessboardComponent {
         this.possibleMoves = [];
         this.isWhiteTurn = false;
         
-        // Activar el movimiento de la IA después de un breve retraso
-        setTimeout(() => this.makeAIMove(), 500);
+        // Calcular y mostrar el movimiento de la IA
+        setTimeout(() => this.showAIMove(), 500);
       } else if (piece && this.isWhitePiece(piece)) {
         this.selectedSquare = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col, piece);
@@ -47,100 +48,166 @@ export class ChessboardComponent {
     }
   }
 
+  showAIMove(): void {
+    console.log('IA está calculando el mejor movimiento...');
+    this.debugBoard();
+    const allPossibleMoves = this.getAllPossibleMoves(false); // false para piezas negras
+    console.log('Movimientos posibles para negras:', allPossibleMoves);
+    if (allPossibleMoves.length > 0) {
+      const move = this.selectBestMove(allPossibleMoves);
+      console.log('Mejor movimiento calculado:', move);
+      if (move && move.from && move.to) {
+        this.highlightedAIMove = move;
+        console.log(`Movimiento de la IA: de (${move.from.row},${move.from.col}) a (${move.to.row},${move.to.col})`);
+        
+        // Ejecutar el movimiento de la IA después de un breve retraso
+        setTimeout(() => {
+          this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+          this.highlightedAIMove = null;
+          this.isWhiteTurn = true;
+          console.log('Movimiento de la IA ejecutado');
+          this.debugBoard();
+        }, 1000); // Retraso de 1 segundo
+      } else {
+        console.error('Movimiento seleccionado no válido:', move);
+      }
+    } else {
+      console.log('No hay movimientos posibles para las piezas negras');
+    }
+  }
+
   isSelected(row: number, col: number): boolean {
     return this.selectedSquare?.row === row && this.selectedSquare?.col === col;
   }
-
   isPossibleMove(row: number, col: number): boolean {
-    return this.possibleMoves.some(move => move.row === row && move.col === col);
+    return this.possibleMoves.some(move => move.row === row && move.col === col) ||
+           (this.highlightedAIMove !== null && 
+            this.highlightedAIMove.to.row === row && 
+            this.highlightedAIMove.to.col === col);
+  }
+
+  isAIMove(row: number, col: number): boolean {
+    return this.highlightedAIMove !== null &&
+           this.highlightedAIMove.to.row === row &&
+           this.highlightedAIMove.to.col === col;
   }
 
   isWhitePiece(piece: string): boolean {
     return ['♙', '♖', '♘', '♗', '♕', '♔'].includes(piece);
   }
 
+  isBlackPiece(piece: string): boolean {
+    return ['♟', '♜', '♞', '♝', '♛', '♚'].includes(piece);
+  }
+
   getPossibleMoves(row: number, col: number, piece: string): { row: number, col: number }[] {
-    switch (piece) {
-      case '♙': return this.getPawnMoves(row, col);
-      case '♖': return this.getRookMoves(row, col);
-      case '♘': return this.getKnightMoves(row, col);
-      case '♗': return this.getBishopMoves(row, col);
-      case '♕': return this.getQueenMoves(row, col);
-      case '♔': return this.getKingMoves(row, col);
+    console.log(`Obteniendo movimientos posibles para ${piece} en (${row},${col})`);
+    switch (piece.toLowerCase()) {
+      case '♙': return this.getWhitePawnMoves(row, col);
+      case '♟': return this.getBlackPawnMoves(row, col);
+      case '♖':
+      case '♜': return this.getRookMoves(row, col);
+      case '♘':
+      case '♞': return this.getKnightMoves(row, col);
+      case '♗':
+      case '♝': return this.getBishopMoves(row, col);
+      case '♕':
+      case '♛': return this.getQueenMoves(row, col);
+      case '♔':
+      case '♚': return this.getKingMoves(row, col);
       default: return [];
     }
   }
 
-  getPawnMoves(row: number, col: number): { row: number, col: number }[] {
+  getWhitePawnMoves(row: number, col: number): { row: number, col: number }[] {
     const moves = [];
-    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
-    const direction = isWhite ? -1 : 1;
-    
-    if (!this.isOccupiedBySameColor(row + direction, col, isWhite)) {
-      moves.push({ row: row + direction, col });
-      if ((isWhite && row === 6) || (!isWhite && row === 1)) {
-        if (!this.isOccupiedBySameColor(row + 2 * direction, col, isWhite)) {
-          moves.push({ row: row + 2 * direction, col });
-        }
+    if (row > 0 && !this.getPiece(row - 1, col)) {
+      moves.push({ row: row - 1, col });
+      if (row === 6 && !this.getPiece(row - 2, col)) {
+        moves.push({ row: row - 2, col });
       }
     }
-    
+    if (row > 0 && col > 0 && this.isBlackPiece(this.getPiece(row - 1, col - 1) || '')) {
+      moves.push({ row: row - 1, col: col - 1 });
+    }
+    if (row > 0 && col < 7 && this.isBlackPiece(this.getPiece(row - 1, col + 1) || '')) {
+      moves.push({ row: row - 1, col: col + 1 });
+    }
+    return moves;
+  }
+
+  getBlackPawnMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [];
+    if (row < 7 && !this.getPiece(row + 1, col)) {
+      moves.push({ row: row + 1, col });
+      if (row === 1 && !this.getPiece(row + 2, col)) {
+        moves.push({ row: row + 2, col });
+      }
+    }
+    if (row < 7 && col > 0 && this.isWhitePiece(this.getPiece(row + 1, col - 1) || '')) {
+      moves.push({ row: row + 1, col: col - 1 });
+    }
+    if (row < 7 && col < 7 && this.isWhitePiece(this.getPiece(row + 1, col + 1) || '')) {
+      moves.push({ row: row + 1, col: col + 1 });
+    }
     return moves;
   }
 
   getRookMoves(row: number, col: number): { row: number, col: number }[] {
     const moves = [];
-    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
     const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-    
     for (const [dx, dy] of directions) {
       let x = row + dx;
       let y = col + dy;
-      while (x >= 0 && x < 8 && y >= 0 && y < 8) {
-        if (this.isOccupiedBySameColor(x, y, isWhite)) break;
-        moves.push({ row: x, col: y });
-        if (this.getPiece(x, y) !== null) break;
+      while (this.isValidPosition(x, y)) {
+        if (!this.getPiece(x, y)) {
+          moves.push({ row: x, col: y });
+        } else {
+          if (this.isOpponentPiece(row, col, x, y)) {
+            moves.push({ row: x, col: y });
+          }
+          break;
+        }
         x += dx;
         y += dy;
       }
     }
-    
+    return moves;
+  }
+
+  getKnightMoves(row: number, col: number): { row: number, col: number }[] {
+    const moves = [];
+    const knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+    for (const [dx, dy] of knightMoves) {
+      const x = row + dx;
+      const y = col + dy;
+      if (this.isValidPosition(x, y) && (!this.getPiece(x, y) || this.isOpponentPiece(row, col, x, y))) {
+        moves.push({ row: x, col: y });
+      }
+    }
     return moves;
   }
 
   getBishopMoves(row: number, col: number): { row: number, col: number }[] {
     const moves = [];
-    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
     const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-    
     for (const [dx, dy] of directions) {
       let x = row + dx;
       let y = col + dy;
-      while (x >= 0 && x < 8 && y >= 0 && y < 8) {
-        if (this.isOccupiedBySameColor(x, y, isWhite)) break;
-        moves.push({ row: x, col: y });
-        if (this.getPiece(x, y) !== null) break;
+      while (this.isValidPosition(x, y)) {
+        if (!this.getPiece(x, y)) {
+          moves.push({ row: x, col: y });
+        } else {
+          if (this.isOpponentPiece(row, col, x, y)) {
+            moves.push({ row: x, col: y });
+          }
+          break;
+        }
         x += dx;
         y += dy;
       }
     }
-    
     return moves;
-  }
-
-  getKnightMoves(row: number, col: number): { row: number, col: number }[] {
-    const moves = [
-      { row: row - 2, col: col - 1 }, { row: row - 2, col: col + 1 },
-      { row: row - 1, col: col - 2 }, { row: row - 1, col: col + 2 },
-      { row: row + 1, col: col - 2 }, { row: row + 1, col: col + 2 },
-      { row: row + 2, col: col - 1 }, { row: row + 2, col: col + 1 }
-    ];
-    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
-    
-    return moves.filter(move => 
-      move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8 &&
-      !this.isOccupiedBySameColor(move.row, move.col, isWhite)
-    );
   }
 
   getQueenMoves(row: number, col: number): { row: number, col: number }[] {
@@ -148,22 +215,28 @@ export class ChessboardComponent {
   }
 
   getKingMoves(row: number, col: number): { row: number, col: number }[] {
-    const moves = [
-      { row: row - 1, col: col - 1 }, { row: row - 1, col }, { row: row - 1, col: col + 1 },
-      { row, col: col - 1 }, { row, col: col + 1 },
-      { row: row + 1, col: col - 1 }, { row: row + 1, col }, { row: row + 1, col: col + 1 }
-    ];
-    const isWhite = this.isWhitePiece(this.getPiece(row, col)!);
-    
-    return moves.filter(move => 
-      move.row >= 0 && move.row < 8 && move.col >= 0 && move.col < 8 &&
-      !this.isOccupiedBySameColor(move.row, move.col, isWhite)
-    );
+    const moves = [];
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        if (dx === 0 && dy === 0) continue;
+        const x = row + dx;
+        const y = col + dy;
+        if (this.isValidPosition(x, y) && (!this.getPiece(x, y) || this.isOpponentPiece(row, col, x, y))) {
+          moves.push({ row: x, col: y });
+        }
+      }
+    }
+    return moves;
   }
 
-  isOccupiedBySameColor(row: number, col: number, isWhite: boolean): boolean {
-    const piece = this.getPiece(row, col);
-    return piece !== null && this.isWhitePiece(piece) === isWhite;
+  isValidPosition(row: number, col: number): boolean {
+    return row >= 0 && row < 8 && col >= 0 && col < 8;
+  }
+
+  isOpponentPiece(fromRow: number, fromCol: number, toRow: number, toCol: number): boolean {
+    const fromPiece = this.getPiece(fromRow, fromCol);
+    const toPiece = this.getPiece(toRow, toCol);
+    return fromPiece !== null && toPiece !== null && this.isWhitePiece(fromPiece) !== this.isWhitePiece(toPiece);
   }
 
   movePiece(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
@@ -177,6 +250,8 @@ export class ChessboardComponent {
         this.gameOver = true;
         console.log('¡Juego terminado!');
       }
+    } else {
+      console.error(`No hay pieza en la posición (${fromRow},${fromCol})`);
     }
   }
 
@@ -208,32 +283,14 @@ export class ChessboardComponent {
 
   gameOver: boolean = false;
 
-  makeAIMove(): void {
-    console.log('IA está pensando...');
-    const allPossibleMoves = this.getAllPossibleMoves(false);
-    console.log('Movimientos posibles:', allPossibleMoves);
-    if (allPossibleMoves.length > 0) {
-      const move = this.selectBestMove(allPossibleMoves);
-      console.log('Movimiento seleccionado:', move);
-      this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
-      this.isWhiteTurn = true;
-      
-      if (this.isGameOver()) {
-        this.gameOver = true;
-      }
-    } else {
-      console.log('No hay movimientos posibles para las piezas negras');
-    }
-  }
-
   getAllPossibleMoves(isWhite: boolean): any[] {
     const moves: any[] = [];
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const piece = this.getPiece(row, col);
         if (piece) {
-          console.log(`Pieza en (${row},${col}): ${piece}, isWhite: ${this.isWhitePiece(piece)}`);
-          if (this.isWhitePiece(piece) !== isWhite) {
+          console.log(`Pieza en (${row},${col}): ${piece}, isWhite: ${this.isWhitePiece(piece)}, isBlack: ${this.isBlackPiece(piece)}`);
+          if (isWhite ? this.isWhitePiece(piece) : this.isBlackPiece(piece)) {
             const pieceMoves = this.getPossibleMoves(row, col, piece);
             console.log(`Movimientos posibles para ${piece} en (${row},${col}):`, pieceMoves);
             pieceMoves.forEach(move => {
@@ -248,22 +305,21 @@ export class ChessboardComponent {
   }
 
   selectBestMove(moves: any[]): any {
-    // Por ahora, simplemente seleccionamos un movimiento aleatorio
+    if (moves.length === 0) {
+      return null;
+    }
     return moves[Math.floor(Math.random() * moves.length)];
   }
 
-  isGameOver(): boolean {
-    // Implementa la lógica para verificar si el juego ha terminado
-    // Por ejemplo, si un rey ha sido capturado
-    const whiteKing = this.board.findIndex(row => row.includes('♔'));
-    const blackKing = this.board.findIndex(row => row.includes('♚'));
-
-    console.log('whiteKing:', whiteKing, 'blackKing:', blackKing);
-
-    if (whiteKing === -1 || blackKing === -1) {
-      return true;
-    } else {
-      return false;
-    }
+  debugBoard(): void {
+    console.log('Estado actual del tablero:');
+    this.board.forEach(row => {
+      console.log(row.join(' '));
+    });
   }
-};
+
+  isGameOver(): boolean {
+    return this.gameOver;
+  }
+}   
+
