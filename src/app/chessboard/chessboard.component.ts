@@ -14,7 +14,7 @@ export class ChessboardComponent {
   getPiece(row: number, col: number): string | null {
     return this.board[row][col] || null;
   }
-  
+  checkMessage: string | null = null;
   selectedSquare: { row: number, col: number } | null = null;
   possibleMoves: { row: number, col: number }[] = [];
   highlightedAIMove: { from: { row: number, col: number }, to: { row: number, col: number } } | null = null;
@@ -246,6 +246,15 @@ export class ChessboardComponent {
       this.setPiece(toRow, toCol, piece);
       console.log(`Pieza movida de (${fromRow},${fromCol}) a (${toRow},${toCol})`);
       
+      const isWhiteKing = this.isWhitePiece(piece);
+      if (this.isKingInCheck(!isWhiteKing)) {
+        const checkedKingColor = isWhiteKing ? 'negro' : 'blanco';
+        this.checkMessage = `¡Jaque al rey ${checkedKingColor}!`;
+        console.log(this.checkMessage);
+      } else {
+        this.checkMessage = null;
+      }
+      
       if (this.isGameOver()) {
         this.gameOver = true;
         console.log('¡Juego terminado!');
@@ -320,6 +329,54 @@ export class ChessboardComponent {
 
   isGameOver(): boolean {
     return this.gameOver;
+  }
+
+  isKingInCheck(isWhiteKing: boolean): boolean {
+    // Encontrar la posición del rey
+    const kingPosition = this.findKingPosition(isWhiteKing);
+    if (!kingPosition) return false;
+
+    // Verificar si alguna pieza del oponente puede atacar al rey
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) !== isWhiteKing) {
+          const moves = this.getPossibleMoves(row, col, piece);
+          if (moves.some(move => move.row === kingPosition.row && move.col === kingPosition.col)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  findKingPosition(isWhiteKing: boolean): { row: number, col: number } | null {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if ((isWhiteKing && piece === '♔') || (!isWhiteKing && piece === '♚')) {
+          return { row, col };
+        }
+      }
+    }
+    return null;
+  }
+
+  isCheckmate(isWhiteKing: boolean): boolean {
+    if (!this.isKingInCheck(isWhiteKing)) return false;
+
+    // Verificar si hay algún movimiento legal que saque al rey del jaque
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) === isWhiteKing) {
+          const moves = this.getPossibleMoves(row, col, piece);
+          if (moves.length > 0) return false;
+        }
+      }
+    }
+    return true;
   }
 }   
 

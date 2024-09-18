@@ -93,3 +93,14 @@
     justify-content: center; // Centrar el contenido horizontalmente
     padding-left: 10px; // Ajusta este valor según sea necesario
 }
+
+.check-message {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #ffcccc;
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 5px;
+}
