@@ -9,8 +9,11 @@ import { CommonModule } from '@angular/common';
   styleUrl: './chessboard.component.scss'
 })
 export class ChessboardComponent {
-  cols: any=[`1`, ` 2`, ` 3`, ` 4`, ` 5`, ` 6`, ` 7`, `8`];
+  cols: any = [`1`, ` 2`, ` 3`, ` 4`, ` 5`, ` 6`, ` 7`, `8`];
   rows = [`a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`];
+  checkmateMessage: any;
+  drawMessage: any;
+  gameOverMessage: any;
   getPiece(row: number, col: number): string | null {
     return this.board[row][col] || null;
   }
@@ -32,7 +35,7 @@ export class ChessboardComponent {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.isWhiteTurn = false;
-        
+
         // Calcular y mostrar el movimiento de la IA
         setTimeout(() => this.showAIMove(), 500);
       } else if (piece && this.isWhitePiece(piece)) {
@@ -59,7 +62,7 @@ export class ChessboardComponent {
       if (move && move.from && move.to) {
         this.highlightedAIMove = move;
         console.log(`Movimiento de la IA: de (${move.from.row},${move.from.col}) a (${move.to.row},${move.to.col})`);
-        
+
         // Ejecutar el movimiento de la IA después de un breve retraso
         setTimeout(() => {
           this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
@@ -81,15 +84,15 @@ export class ChessboardComponent {
   }
   isPossibleMove(row: number, col: number): boolean {
     return this.possibleMoves.some(move => move.row === row && move.col === col) ||
-           (this.highlightedAIMove !== null && 
-            this.highlightedAIMove.to.row === row && 
-            this.highlightedAIMove.to.col === col);
+      (this.highlightedAIMove !== null &&
+        this.highlightedAIMove.to.row === row &&
+        this.highlightedAIMove.to.col === col);
   }
 
   isAIMove(row: number, col: number): boolean {
     return this.highlightedAIMove !== null &&
-           this.highlightedAIMove.to.row === row &&
-           this.highlightedAIMove.to.col === col;
+      this.highlightedAIMove.to.row === row &&
+      this.highlightedAIMove.to.col === col;
   }
 
   isWhitePiece(piece: string): boolean {
@@ -245,7 +248,7 @@ export class ChessboardComponent {
       this.setPiece(fromRow, fromCol, null);
       this.setPiece(toRow, toCol, piece);
       console.log(`Pieza movida de (${fromRow},${fromCol}) a (${toRow},${toCol})`);
-      
+
       const isWhiteKing = this.isWhitePiece(piece);
       if (this.isKingInCheck(!isWhiteKing)) {
         const checkedKingColor = isWhiteKing ? 'negro' : 'blanco';
@@ -254,7 +257,7 @@ export class ChessboardComponent {
       } else {
         this.checkMessage = null;
       }
-      
+
       if (this.isGameOver()) {
         this.gameOver = true;
         console.log('¡Juego terminado!');
@@ -378,5 +381,5 @@ export class ChessboardComponent {
     }
     return true;
   }
-}   
+}
 
