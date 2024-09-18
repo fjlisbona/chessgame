@@ -2,6 +2,8 @@ import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChessAIService } from './ChessAIService.service';
+import { MatDialog } from '@angular/material/dialog';
+import { CheckmateDialogComponent } from '../checkmate-dialog/checkmate-dialog.component';
 
 @Component({
   selector: 'chessboard-app',
@@ -13,7 +15,7 @@ import { ChessAIService } from './ChessAIService.service';
 export class ChessboardComponent {
   cols: any = [`1`, ` 2`, ` 3`, ` 4`, ` 5`, ` 6`, ` 7`, `8`];
   rows = [`a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`];
-  checkmateMessage: any;
+  checkmateMessage: string | null = null;
   drawMessage: any;
   gameOverMessage: any;
   getPiece(row: number, col: number): string | null {
@@ -26,7 +28,7 @@ export class ChessboardComponent {
 
   isWhiteTurn: boolean = true;
 
-  constructor(private chessAI: ChessAIService) {}
+  constructor(private chessAI: ChessAIService, private dialog: MatDialog) {}
 
   onSquareClick(row: number, col: number): void {
     if (!this.isWhiteTurn) return; // No permitir clicks durante el turno de las negras
@@ -257,6 +259,7 @@ export class ChessboardComponent {
           this.checkmateMessage = `¡Jaque mate! ${isWhiteKing ? 'Blancas' : 'Negras'} ganan.`;
           this.gameOver = true;
           console.log(this.checkmateMessage);
+          this.openCheckmateDialog(this.checkmateMessage);
         }
       } else {
         this.checkMessage = null;
@@ -331,38 +334,6 @@ export class ChessboardComponent {
     return this.gameOver;
   }
 
-  isKingInCheck(isWhiteKing: boolean): boolean {
-    // Encontrar la posición del rey
-    const kingPosition = this.findKingPosition(isWhiteKing);
-    if (!kingPosition) return false;
-
-    // Verificar si alguna pieza del oponente puede atacar al rey
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const piece = this.getPiece(row, col);
-        if (piece && this.isWhitePiece(piece) !== isWhiteKing) {
-          const moves = this.getPossibleMoves(row, col, piece);
-          if (moves.some(move => move.row === kingPosition.row && move.col === kingPosition.col)) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  findKingPosition(isWhiteKing: boolean): { row: number, col: number } | null {
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        const piece = this.getPiece(row, col);
-        if ((isWhiteKing && piece === '♔') || (!isWhiteKing && piece === '♚')) {
-          return { row, col };
-        }
-      }
-    }
-    return null;
-  }
-
   isCheckmate(isWhiteKing: boolean): boolean {
     if (!this.isKingInCheck(isWhiteKing)) return false;
 
@@ -395,6 +366,38 @@ export class ChessboardComponent {
     return true; // No hay movimientos que eviten el jaque mate
   }
 
+  isKingInCheck(isWhiteKing: boolean): boolean {
+    // Encontrar la posición del rey
+    const kingPosition = this.findKingPosition(isWhiteKing);
+    if (!kingPosition) return false;
+
+    // Verificar si alguna pieza del oponente puede atacar al rey
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) !== isWhiteKing) {
+          const moves = this.getPossibleMoves(row, col, piece);
+          if (moves.some(move => move.row === kingPosition.row && move.col === kingPosition.col)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  findKingPosition(isWhiteKing: boolean): { row: number, col: number } | null {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if ((isWhiteKing && piece === '♔') || (!isWhiteKing && piece === '♚')) {
+          return { row, col };
+        }
+      }
+    }
+    return null;
+  }
+
   evaluateBoard(): number {
     // Implementa una función simple para evaluar el estado del tablero
     // Por ejemplo, contar el valor de las piezas
@@ -419,6 +422,14 @@ export class ChessboardComponent {
       }
     }
     return score;
+  }
+
+  openCheckmateDialog(message: string): void {
+    this.dialog.open(CheckmateDialogComponent, {
+      data: { message: message },
+      disableClose: true,
+      width: '300px'
+    });
   }
 }
 

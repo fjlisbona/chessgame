@@ -1,6 +1,87 @@
 import { Injectable } from '@angular/core';
 import * as tf from '@tensorflow/tfjs';
 
+// Definir la interfaz TrainingData
+interface TrainingData {
+  boardState: number[];
+  bestMove: { from: { row: number, col: number }, to: { row: number, col: number } };
+  score: number;
+}
+
+// Datos de entrenamiento
+const trainingData: TrainingData[] = [
+  {
+    boardState: [
+      2, 3, 4, 5, 6, 4, 3, 2,
+      1, 1, 1, 1, 0, 1, 1, 1,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 0, -1, 0, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      -1, -1, -1, -1, 0, -1, -1, -1,
+      -2, -3, -4, -5, -6, -4, -3, -2
+    ],
+    bestMove: { from: { row: 1, col: 4 }, to: { row: 3, col: 4 } },
+    score: 0.6
+  },
+  {
+    boardState: [
+      2, 3, 4, 5, 6, 4, 0, 2,
+      1, 1, 1, 1, 1, 1, 1, 1,
+      0, 0, 0, 0, 0, 3, 0, 0,
+      0, 0, 0, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, -1, 0, 0, 0,
+      0, 0, -3, 0, 0, 0, 0, 0,
+      -1, -1, -1, -1, 0, -1, -1, -1,
+      -2, 0, -4, -5, -6, -4, -3, -2
+    ],
+    bestMove: { from: { row: 2, col: 5 }, to: { row: 4, col: 4 } },
+    score: 0.8
+  },
+  {
+    boardState: [
+      2, 0, 4, 5, 6, 4, 3, 2,
+      1, 1, 1, 0, 0, 1, 1, 1,
+      0, 0, 3, 0, 1, 0, 0, 0,
+      0, 0, 0, 1, 0, 0, 0, 0,
+      0, -1, 0, 0, -1, 0, 0, 0,
+      -3, 0, 0, 0, 0, 0, 0, 0,
+      -1, 0, -1, -1, 0, -1, -1, -1,
+      -2, 0, -4, -5, -6, -4, 0, -2
+    ],
+    bestMove: { from: { row: 5, col: 0 }, to: { row: 2, col: 3 } },
+    score: 0.7
+  },
+  {
+    boardState: [
+      2, 3, 0, 5, 6, 4, 3, 2,
+      1, 1, 1, 1, 0, 1, 1, 1,
+      0, 0, 0, 0, 1, 4, 0, 0,
+      0, 0, 4, 0, 0, 0, 0, 0,
+      0, 0, 0, 0, -1, 0, -3, 0,
+      0, 0, 0, 0, 0, -3, 0, 0,
+      -1, -1, -1, -1, 0, -1, -1, -1,
+      -2, 0, -4, -5, -6, -4, 0, -2
+    ],
+    bestMove: { from: { row: 2, col: 5 }, to: { row: 6, col: 1 } },
+    score: 0.9
+  },
+  {
+    boardState: [
+      2, 3, 4, 0, 6, 4, 3, 2,
+      1, 1, 1, 1, 0, 1, 1, 1,
+      0, 0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 5, 0, 0, 0, 0,
+      0, 0, 0, 0, -1, 0, 0, 0,
+      0, 0, -3, 0, 0, 0, 0, 0,
+      -1, -1, -1, -1, -5, -1, -1, -1,
+      -2, 0, -4, 0, -6, -4, -3, -2
+    ],
+    bestMove: { from: { row: 3, col: 3 }, to: { row: 6, col: 3 } },
+    score: 1.0
+  }
+];
+
 @Injectable({
   providedIn: 'root'
 })
