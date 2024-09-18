@@ -6,7 +6,7 @@ import * as tf from '@tensorflow/tfjs';
 })
 export class ChessAIService {
   private model: tf.Sequential | undefined;
-  private epsilon = 0.05; // Reducimos la tasa de exploración
+  private epsilon = 0.1; // Tasa de exploración
 
   constructor() {
     this.initModel();
@@ -14,14 +14,10 @@ export class ChessAIService {
 
   private initModel() {
     this.model = tf.sequential();
-    this.model.add(tf.layers.dense({ units: 128, activation: 'relu', inputShape: [64] }));
-    this.model.add(tf.layers.dense({ units: 256, activation: 'relu' }));
-    this.model.add(tf.layers.dense({ units: 128, activation: 'relu' }));
-    this.model.add(tf.layers.dense({ units: 1, activation: 'tanh' }));
-    this.model.compile({ 
-      optimizer: tf.train.adam(0.001),
-      loss: 'meanSquaredError'
-    });
+    this.model.add(tf.layers.dense({ units: 64, activation: 'relu', inputShape: [64] }));
+    this.model.add(tf.layers.dense({ units: 64, activation: 'relu' }));
+    this.model.add(tf.layers.dense({ units: 1, activation: 'linear' }));
+    this.model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
   }
 
   getBoardState(board: string[][]): number[] {
@@ -74,9 +70,7 @@ export class ChessAIService {
   async train(state: number[], reward: number) {
     const target = reward;
     await this.model?.fit(tf.tensor2d([state]), tf.tensor2d([[target]]), {
-      epochs: 5,
-      batchSize: 32,
-      shuffle: true,
+      epochs: 1,
     });
   }
 }

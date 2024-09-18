@@ -13,7 +13,7 @@ import { ChessAIService } from './ChessAIService.service';
 export class ChessboardComponent {
   cols: any = [`1`, ` 2`, ` 3`, ` 4`, ` 5`, ` 6`, ` 7`, `8`];
   rows = [`a`, `b`, `c`, `d`, `e`, `f`, `g`, `h`];
-  checkmateMessage: string = '';
+  checkmateMessage: any;
   drawMessage: any;
   gameOverMessage: any;
   getPiece(row: number, col: number): string | null {
@@ -39,15 +39,6 @@ export class ChessboardComponent {
         this.selectedSquare = null;
         this.possibleMoves = [];
         this.isWhiteTurn = false;
-
-        if (this.isCheckmate()) {
-          // El juego ha terminado en jaque mate
-          this.gameOver = true;
-        } else if (this.isKingInCheck(this.isWhiteTurn ? 'black' : 'white')) {
-          this.checkMessage = `${this.isWhiteTurn ? 'Negras' : 'Blancas'} en jaque!`;
-        } else {
-          this.checkMessage = '';
-        }
 
         // Calcular y mostrar el movimiento de la IA
         setTimeout(() => this.makeAIMove(), 500);
@@ -77,15 +68,6 @@ export class ChessboardComponent {
         this.isWhiteTurn = true;
         console.log(`Movimiento de la IA: de (${move.from.row},${move.from.col}) a (${move.to.row},${move.to.col})`);
         this.debugBoard();
-
-        if (this.isCheckmate()) {
-          // El juego ha terminado en jaque mate
-          this.gameOver = true;
-        } else if (this.isKingInCheck('white')) {
-          this.checkMessage = `Blancas en jaque!`;
-        } else {
-          this.checkMessage = '';
-        }
 
         // Entrenar el modelo después del movimiento
         const newState = this.chessAI.getBoardState(this.board);
@@ -266,10 +248,16 @@ export class ChessboardComponent {
       console.log(`Pieza movida de (${fromRow},${fromCol}) a (${toRow},${toCol})`);
 
       const isWhiteKing = this.isWhitePiece(piece);
-      if (this.isKingInCheck(!isWhiteKing ? 'white' : 'black')) {
+      if (this.isKingInCheck(!isWhiteKing)) {
         const checkedKingColor = isWhiteKing ? 'negro' : 'blanco';
         this.checkMessage = `¡Jaque al rey ${checkedKingColor}!`;
         console.log(this.checkMessage);
+
+        if (this.isCheckmate(!isWhiteKing)) {
+          this.checkmateMessage = `¡Jaque mate! ${isWhiteKing ? 'Blancas' : 'Negras'} ganan.`;
+          this.gameOver = true;
+          console.log(this.checkmateMessage);
+        }
       } else {
         this.checkMessage = null;
       }
@@ -343,95 +331,68 @@ export class ChessboardComponent {
     return this.gameOver;
   }
 
-  isKingInCheck(player: 'white' | 'black', board = this.board): boolean {
+  isKingInCheck(isWhiteKing: boolean): boolean {
     // Encontrar la posición del rey
-    let kingRow = -1, kingCol = -1;
-    const kingSymbol = player === 'white' ? '♔' : '♚';
-    
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) {
-        if (board[row][col] === kingSymbol) {
-          kingRow = row;
-          kingCol = col;
-          break;
-        }
-      }
-      if (kingRow !== -1) break;
-    }
+    const kingPosition = this.findKingPosition(isWhiteKing);
+    if (!kingPosition) return false;
 
     // Verificar si alguna pieza del oponente puede atacar al rey
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
-        const piece = board[row][col];
-        if (piece && this.isOpponentPiece(kingRow, kingCol, row, col)) {
-          const moves = this.getValidMoves(row, col, board);
-          if (moves.some(move => move.row === kingRow && move.col === kingCol)) {
-            return true; // El rey está en jaque
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) !== isWhiteKing) {
+          const moves = this.getPossibleMoves(row, col, piece);
+          if (moves.some(move => move.row === kingPosition.row && move.col === kingPosition.col)) {
+            return true;
           }
         }
       }
     }
-
-    return false; // El rey no está en jaque
+    return false;
   }
 
-  isCheckmate(): boolean {
-    const currentPlayer = this.isWhiteTurn ? 'white' : 'black';
-    const opponentPlayer = currentPlayer === 'white' ? 'black' : 'white';
-    
-    // Verificar si el rey actual está en jaque
-    if (!this.isKingInCheck(currentPlayer)) {
-      return false;
-    }
-
-    // Obtener todas las piezas del jugador actual
+  findKingPosition(isWhiteKing: boolean): { row: number, col: number } | null {
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
-        const piece = this.board[row][col];
-        if (piece && this.isCurrentPlayerPiece(piece)) {
-          const moves = this.getValidMoves(row, col);
-          
-          // Verificar si algún movimiento saca al rey del jaque
+        const piece = this.getPiece(row, col);
+        if ((isWhiteKing && piece === '♔') || (!isWhiteKing && piece === '♚')) {
+          return { row, col };
+        }
+      }
+    }
+    return null;
+  }
+
+  isCheckmate(isWhiteKing: boolean): boolean {
+    if (!this.isKingInCheck(isWhiteKing)) return false;
+
+    // Verificar si hay algún movimiento legal que saque al rey del jaque
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece && this.isWhitePiece(piece) === isWhiteKing) {
+          const moves = this.getPossibleMoves(row, col, piece);
           for (const move of moves) {
-            const tempBoard = this.cloneBoard();
-            this.makeMove(tempBoard, { row, col }, move);
-            if (!this.isKingInCheck(currentPlayer, tempBoard)) {
+            // Simular el movimiento
+            const originalPiece = this.board[move.row][move.col];
+            this.board[move.row][move.col] = piece;
+            this.board[row][col] = '';
+
+            // Verificar si el rey sigue en jaque después del movimiento
+            const stillInCheck = this.isKingInCheck(isWhiteKing);
+
+            // Deshacer el movimiento
+            this.board[row][col] = piece;
+            this.board[move.row][move.col] = originalPiece;
+
+            if (!stillInCheck) {
               return false; // Hay al menos un movimiento que evita el jaque mate
             }
           }
         }
       }
     }
-
-    // Si no se encontró ningún movimiento para evitar el jaque, es jaque mate
-    this.checkmateMessage = `¡Jaque mate! ${opponentPlayer === 'white' ? 'Blancas' : 'Negras'} ganan.`;
-    return true;
-  }
-
-  // Método auxiliar para clonar el tablero
-  cloneBoard(): string[][] {
-    return this.board.map(row => [...row]);
-  }
-
-  // Método auxiliar para hacer un movimiento en un tablero temporal
-  makeMove(board: string[][], from: { row: number, col: number }, to: { row: number, col: number }): void {
-    const piece = board[from.row][from.col];
-    board[from.row][from.col] = '';
-    board[to.row][to.col] = piece;
-  }
-
-  isCurrentPlayerPiece(piece: string): boolean {
-    return this.isWhiteTurn ? this.isWhitePiece(piece) : this.isBlackPiece(piece);
-  }
-
-  getValidMoves(row: number, col: number, board = this.board): { row: number, col: number }[] {
-    const piece = board[row][col];
-    if (!piece) return [];
-    return this.getPossibleMoves(row, col, piece).filter(move => {
-      const tempBoard = this.cloneBoard();
-      this.makeMove(tempBoard, { row, col }, move);
-      return !this.isKingInCheck(this.isWhiteTurn ? 'white' : 'black', tempBoard);
-    });
+    return true; // No hay movimientos que eviten el jaque mate
   }
 
   evaluateBoard(): number {
