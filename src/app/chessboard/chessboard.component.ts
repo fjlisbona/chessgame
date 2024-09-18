@@ -1,6 +1,8 @@
 import { NgFor } from '@angular/common';
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChessAIService } from './ChessAIService.service';
+
 @Component({
   selector: 'chessboard-app',
   standalone: true,
@@ -24,6 +26,8 @@ export class ChessboardComponent {
 
   isWhiteTurn: boolean = true;
 
+  constructor(private chessAI: ChessAIService) {}
+
   onSquareClick(row: number, col: number): void {
     if (!this.isWhiteTurn) return; // No permitir clicks durante el turno de las negras
 
@@ -37,7 +41,7 @@ export class ChessboardComponent {
         this.isWhiteTurn = false;
 
         // Calcular y mostrar el movimiento de la IA
-        setTimeout(() => this.showAIMove(), 500);
+        setTimeout(() => this.makeAIMove(), 500);
       } else if (piece && this.isWhitePiece(piece)) {
         this.selectedSquare = { row, col };
         this.possibleMoves = this.getPossibleMoves(row, col, piece);
@@ -51,31 +55,25 @@ export class ChessboardComponent {
     }
   }
 
-  showAIMove(): void {
+  async makeAIMove(): Promise<void> {
     console.log('IA está calculando el mejor movimiento...');
     this.debugBoard();
-    const allPossibleMoves = this.getAllPossibleMoves(false); // false para piezas negras
+    const allPossibleMoves = this.getAllPossibleMoves(false);
     console.log('Movimientos posibles para negras:', allPossibleMoves);
     if (allPossibleMoves.length > 0) {
-      const move = this.selectBestMove(allPossibleMoves);
+      const move = await this.chessAI.predictBestMove(this.board, allPossibleMoves);
       console.log('Mejor movimiento calculado:', move);
       if (move && move.from && move.to) {
-        this.highlightedAIMove = move;
+        this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
+        this.isWhiteTurn = true;
         console.log(`Movimiento de la IA: de (${move.from.row},${move.from.col}) a (${move.to.row},${move.to.col})`);
+        this.debugBoard();
 
-        // Ejecutar el movimiento de la IA después de un breve retraso
-        setTimeout(() => {
-          this.movePiece(move.from.row, move.from.col, move.to.row, move.to.col);
-          this.highlightedAIMove = null;
-          this.isWhiteTurn = true;
-          console.log('Movimiento de la IA ejecutado');
-          this.debugBoard();
-        }, 1000); // Retraso de 1 segundo
-      } else {
-        console.error('Movimiento seleccionado no válido:', move);
+        // Entrenar el modelo después del movimiento
+        const newState = this.chessAI.getBoardState(this.board);
+        const reward = this.evaluateBoard(); // Implementa esta función para evaluar el tablero
+        await this.chessAI.train(newState, reward);
       }
-    } else {
-      console.log('No hay movimientos posibles para las piezas negras');
     }
   }
 
@@ -316,13 +314,6 @@ export class ChessboardComponent {
     return moves;
   }
 
-  selectBestMove(moves: any[]): any {
-    if (moves.length === 0) {
-      return null;
-    }
-    return moves[Math.floor(Math.random() * moves.length)];
-  }
-
   debugBoard(): void {
     console.log('Estado actual del tablero:');
     this.board.forEach(row => {
@@ -381,5 +372,32 @@ export class ChessboardComponent {
     }
     return true;
   }
+
+  evaluateBoard(): number {
+    // Implementa una función simple para evaluar el estado del tablero
+    // Por ejemplo, contar el valor de las piezas
+    let score = 0;
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (piece) {
+          switch (piece) {
+            case '♙': score += 1; break;
+            case '♖': score += 5; break;
+            case '♘': case '♗': score += 3; break;
+            case '♕': score += 9; break;
+            case '♔': score += 100; break;
+            case '♟': score -= 1; break;
+            case '♜': score -= 5; break;
+            case '♞': case '♝': score -= 3; break;
+            case '♛': score -= 9; break;
+            case '♚': score -= 100; break;
+          }
+        }
+      }
+    }
+    return score;
+  }
 }
+
 
