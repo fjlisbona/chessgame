@@ -1,6 +1,7 @@
 # Chessgame
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.2.
+Use tensorflow/tfjs": "^4.21.0".
 
 ## Development server
 
