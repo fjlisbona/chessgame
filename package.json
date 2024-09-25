@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:chessgame": "node dist/chessgame/server/server.mjs",
-    "deploy": "ng deploy --base-href=/chessgame/"
+    "deploy": "ng deploy --base-href=/chessgame/ --repo=https://github.com/fjlisbona/chessgame-web.github.io.git"
   },
   "private": true,
   "dependencies": {
