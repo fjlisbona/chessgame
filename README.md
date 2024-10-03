@@ -1,27 +1,40 @@
 # Chessgame
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.2.
+## Descripción
+Es una aplicación web de ajedrez desarrollada con Angular y potenciada por TensorFlow.js para ofrecer una experiencia de juego inteligente. Este proyecto combina la potencia de un framework moderno de frontend con capacidades avanzadas de aprendizaje automático.
 
-## Development server
+## Características
+- Interfaz de usuario intuitiva y responsive
+- Motor de ajedrez basado en IA utilizando TensorFlow.js
+- Múltiples niveles de dificultad
+- Análisis de partidas en tiempo real
+- Modo multijugador (próximamente)
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+## Tecnologías Utilizadas
+- Angular CLI 18.2.2
+- TensorFlow.js 4.21.0
+- TypeScript
+- HTML5 y CSS3
 
-## Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Requisitos Previos
+- Node.js (versión 14.x o superior)
+- npm (normalmente viene con Node.js)
+- Angular CLI (`npm install -g @angular/cli`)
 
-## Build
+## Instalación
+1. Clonar el repositorio:
+   git clone https://github.com/fjlisbona/chessgame.git
+   cd chessgame
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+2. Instalar las dependencias:
+   
+   npm install
+   
 
-## Running unit tests
+## Uso
+Para iniciar el servidor de desarrollo:
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+ng serve -o
 
-## Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

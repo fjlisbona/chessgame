@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "baseHref": "/chessgame/",
             "outputPath": "dist/chessgame",
             "index": "src/index.html",
             "browser": "src/main.ts",
@@ -47,6 +48,7 @@
               "budgets": [
                 {
                   "type": "initial",
+<<<<<<< HEAD
                   "maximumWarning": "8MB",
                   "maximumError": "8MB"
                 },
@@ -54,6 +56,15 @@
                   "type": "anyComponentStyle",
                   "maximumWarning": "8kB",
                   "maximumError": "8kB"
+=======
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+>>>>>>> 18dd0d1d67226711a2abfe2a6c3893b2562f842e
                 }
               ],
               "outputHashing": "all"
@@ -102,6 +113,9 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "angular-cli-ghpages:deploy"
         }
       }
     }
